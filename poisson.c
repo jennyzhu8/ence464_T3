@@ -51,7 +51,7 @@ static bool debug = false;
  * @param delta         Grid spacing.
  * @return double*      Solution to Poissons equation.  Caller must free.
  */
-double* poisson_neumann (int n, double *source, int iterations, int threads, float delta)
+double* poisson_dirichlet (int n, double *source, int iterations, int threads, float delta)
 {
     if (debug)
     {
@@ -164,7 +164,7 @@ int main (int argc, char **argv)
     source[(n * n * n) / 2] = 1;
 
     // Calculate the resulting field with Dirichlet conditions
-    double *result = poisson_neumann (n, source, iterations, threads, delta);
+    double *result = poisson_dirichlet (n, source, iterations, threads, delta);
 
     // Print out the middle slice of the cube for validation
     for (int x = 0; x < n; ++x)
