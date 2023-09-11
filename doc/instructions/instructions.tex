@@ -72,9 +72,9 @@ the electric potential.
 
 Poisson's equation is a partial differential equation and thus
 requires boundary conditions to achieve a solution.  For the
-assignment, the potential on the boundary is zero.  This is a
-Dirichlet boundary condition and is equivalent to enclosing the
-problem in a perfectly conducting, grounded box.
+assignment, the potential on the bottom boundary ($k=0$) is zero and
+the other five sides are insulated.  This is a mixed boundary
+condition.
 
 Poisson's equation can be solved iteratively, at each time-step $n$,
 using Jacobi relaxation, where\footnote{You might recognise
@@ -87,8 +87,66 @@ using Jacobi relaxation, where\footnote{You might recognise
 %
 Here $\Delta = \Delta x = \Delta y = \Delta z$ is the spacing between
 voxels in metres, $0 \le i < N$, $0 \le j < N$, and $0 \le k <
-N$. Voxels on the boundary ($i = 0$, $i=N-1$, $j = 0$, $j=N-1$, $k =
-0$, $k=N-1$) have a potential of zero.
+N$.
+
+Voxels on the bottom boundary ($k = 0$) have a potential of zero.
+Voxels on the other boundaries ($i = 0$, $i=N-1$, $j = 0$, $j=N-1$,
+$k=N-1$) are defined such that the derivative over that boundary is
+zero ($\partial V / \partial n = 0$), see Fig.~\ref{fig:Boundary}.
+For example, consider the derivative in the x-direction, $\partial V /
+\partial x$.  This can be approximated by the central difference,
+%
+\begin{equation}
+  \frac{V_{i+1,j,k} - V_{i-1,j,k}}{2\Delta}.
+\end{equation}
+%
+On the boundary where $i=0$, then
+%
+\begin{equation}
+  \frac{V_{1,j,k} - V_{-1,j,k}}{2\Delta},
+\end{equation}
+%
+and for this to be zero implies $V_{-1,j,k} = V_{1,j,k}$.  Since these
+voltages are the same, no current flows normal to the boundary as
+expected for an insulating boundary.  Similarly, on the other
+x-boundary, $V_{N,j,k} = V_{N-2,j,k}$.
+
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{>=stealth'}
+
+    % Draw some axes
+    \draw[->] (-4, 0) -- (4, 0);
+    \draw[->] (0, 0) -- (0, 4.2);
+
+    \node[above right] at(0, 4) {$V(x)$};
+    \node[below right] at(4, 0) {$x$};
+
+    % Draw the boundary
+    \fill[pattern=north east lines]
+        (-0.2, 0) -- (-0.2, 4) -- (0, 4) -- (0, 0);
+
+    \draw (-3, 2.5) -- (0, 1.5) -- (3, 2.5) -- (4, 4);
+
+    \draw[dashed] (-4, 1.5) -- (4, 1.5);
+
+    \draw[fill=red] (-3, 2.5) circle (0.1);
+    \draw[fill=blue] (0, 1.5) circle (0.1);
+    \draw[fill=blue] (3, 2.5) circle (0.1);
+
+    \draw[<->] (-3, 1.5) -- (-3, 2.4);
+    \draw[<->] (3, 1.5) -- (3, 2.4);
+
+    \node[right] at (3, 2) {$\Delta V$};
+    \node[right] at (-3, 2) {$\Delta V$};
+  \end{tikzpicture}
+  \caption{Illustration of a Neumann boundary condition where the external
+  `ghost' point (red) is defined such that the gradient at the boundary is zero
+  with respect to the internal points (blue).}
+  \label{fig:Boundary}
+\end{figure}
 
 
 \section{Implementation}
