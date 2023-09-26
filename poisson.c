@@ -25,6 +25,7 @@
  * $ make (this just compiles it with the default settings in the makefile)
  * A poisson executable will appear (without an extension .c)
  * $ ./poisson to run the executable
+ * $ ./poisson -n 101 -i 100 to choose iterations and cube size
  * Change the optimiser flags in the make file
  * $ make clean resolves everything, need to make again after this (use if change header files)
  * 
@@ -48,6 +49,7 @@
 // Set to true when operating in debug mode to enable verbose logging
 static bool debug = true;
 
+#define to1D(i,j,k,n) ((k * n * n) + (j * n) + i)
 
 /**
  * @brief Solve Poissons equation for a given cube with Dirichlet boundary
@@ -73,8 +75,8 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
     }
 
     // Allocate some buffers to calculate the solution in
-    double *curr = (double*)calloc (n * n * n, sizeof (double));
-    double *next = (double*)calloc (n * n * n, sizeof (double));
+    double *curr = (double*)calloc (n * n * n, sizeof (double)); // prev step
+    double *next = (double*)calloc (n * n * n, sizeof (double)); // next step
 
     // Ensure we haven't run out of memory
     if (curr == NULL || next == NULL)
@@ -84,6 +86,44 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
     }
 
     // TODO: solve Poisson's equation for the given inputs
+
+    // If statements for edge cases
+
+    for (int num=0; num<=iterations; num++)
+    {  
+
+        for (int i=1; i<n; i++)
+        {
+            for (int j=1; j<n; j++)
+            {
+                for (int k=0; k<n; k++)
+                {
+                    if (k==0)
+                    {
+                        next[to1D(i,j,k,n)] = 0;
+                    }
+                    // else if (k==(n-1))
+                    // {
+                        
+                    // }
+                    else
+                    {
+                        next[to1D(i,j,k,n)] = 1.0/6.0 *
+                                                (curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)]
+                                                + curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)]
+                                                + curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)]
+                                                - (delta*delta)*source[to1D(i,j,k,n)]);
+                    }
+                }
+                    
+            }
+        }
+
+    double *temp = curr; // a new pointer to the memory space of curr
+    curr = next; // curr now points to the memory space of next
+    next = temp; // next now points to memory space of temp which is the old memory space of curr
+    
+    }
 
     // Free one of the buffers and return the correct answer in the other.
     // The caller is now responsible for free'ing the returned pointer.
