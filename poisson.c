@@ -20,6 +20,15 @@
  * [note: linking pthread isn't strictly needed until you add your
  *        multithreading code]
  *
+ * 
+ * Run in terminal by entering the folder,
+ * $ make (this just compiles it with the default settings in the makefile)
+ * A poisson executable will appear (without an extension .c)
+ * $ ./poisson to run the executable
+ * Change the optimiser flags in the make file
+ * $ make clean resolves everything, need to make again after this (use if change header files)
+ * 
+ * 
  * TODO:
  * 1 - Read through this example, understand what it does and what it gives you
  *     to work with.
@@ -37,16 +46,16 @@
 
 // Global flag
 // Set to true when operating in debug mode to enable verbose logging
-static bool debug = false;
+static bool debug = true;
 
 
 /**
  * @brief Solve Poissons equation for a given cube with Dirichlet boundary
  * conditions on all sides.
  *
- * @param n             The edge length of the cube. n^3 number of elements.
+ * @param n             The edge length of the cube. n^3 number of elements. -n
  * @param source        Pointer to the source term cube, a.k.a. forcing function.
- * @param iterations    Number of iterations to perform.
+ * @param iterations    Number of iterations to perform. -i
  * @param threads       Number of threads to use for solving.
  * @param delta         Grid spacing.
  * @return double*      Solution to Poissons equation.  Caller must free.
