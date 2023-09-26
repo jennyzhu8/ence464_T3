@@ -49,6 +49,7 @@
 // Set to true when operating in debug mode to enable verbose logging
 static bool debug = true;
 
+// Macro to calculate the 1D index by flattening the 3D index
 #define to1D(i,j,k,n) ((k * n * n) + (j * n) + i)
 
 /**
@@ -87,8 +88,8 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
 
     // TODO: solve Poisson's equation for the given inputs
 
-    // If statements for edge cases
-
+    // Iterate over 3 dimensions i, j, and k
+    // Need to consider the boundary conditions for each side of the cube
     for (int num=0; num<=iterations; num++)
     {  
 
@@ -104,15 +105,14 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
                     }
                     // else if (k==(n-1))
                     // {
-                        
+                        // boundary i-1 just equals i+1
                     // }
                     else
                     {
-                        next[to1D(i,j,k,n)] = 1.0/6.0 *
-                                                (curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)]
+                        next[to1D(i,j,k,n)] =   (curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)]
                                                 + curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)]
                                                 + curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)]
-                                                - (delta*delta)*source[to1D(i,j,k,n)]);
+                                                - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
                     }
                 }
                     
