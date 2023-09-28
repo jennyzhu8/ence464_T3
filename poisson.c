@@ -90,32 +90,50 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
 
     // Iterate over 3 dimensions i, j, and k
     // Need to consider the boundary conditions for each side of the cube
-    for (int num=0; num<=iterations; num++)
+    for (int num=0; num<iterations; num++)
     {  
-
-        for (int i=1; i<n; i++)
+        // Split each axis into separate components
+        double i_component;
+        double j_component;
+        double k_component;
+        
+        for (int i=0; i<n; i++)
         {
-            for (int j=1; j<n; j++)
+            for (int j=0; j<n; j++)
             {
-                for (int k=0; k<n; k++)
+                next[to1D(i,j,0,n)] = 0;
+
+                for (int k=1; k<n; k++)
                 {
-                    if (k==0)
-                    {
-                        next[to1D(i,j,k,n)] = 0;
+                    if (i==0)
+                    {   
+                        i_component = curr[to1D(i+1,j,k,n)]*2;
                     }
-                    // else if (k==(n-1))
-                    // {
-                        // boundary i-1 just equals i+1
-                    // }
+                    else if (i==(n-1))
+                    {
+                        i_component = curr[to1D(i-1,j,k,n)]*2;
+                    }
+                    if (j==0)
+                    {   
+                        j_component = curr[to1D(i,j+1,k,n)]*2;
+                    }
+                    else if (j==(n-1))
+                    {
+                        j_component = curr[to1D(i,j-1,k,n)]*2;
+                    }
+                    if (k==(n-1))
+                    {
+                        k_component = curr[to1D(i,j,k-1,n)]*2;
+                    }
                     else
                     {
-                        next[to1D(i,j,k,n)] =   (curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)]
-                                                + curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)]
-                                                + curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)]
-                                                - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
+                        i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
+                        j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
+                        k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
                     }
+                    next[to1D(i,j,k,n)] = (i_component + j_component + k_component
+                                            - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
                 }
-                    
             }
         }
 
