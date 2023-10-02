@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+
 
 
 /**
@@ -47,7 +49,7 @@
 
 // Global flag
 // Set to true when operating in debug mode to enable verbose logging
-static bool debug = false;
+static bool debug = true;
 
 // Macro to calculate the 1D index by flattening the 3D index
 #define to1D(i,j,k,n) (((k) * n * n) + ((j) * n) + (i))
@@ -141,7 +143,7 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
 
 
         while (k<n)
-        {   
+        {
             if (k==0)
             {
                 next[to1D(i,j,k,n)] = 0;
@@ -279,6 +281,9 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
 
 int main (int argc, char **argv)
 {
+    clock_t start, end;
+    start = clock();
+
     // Default settings for solver
     int iterations = 10;
     int n = 5;
@@ -365,6 +370,13 @@ int main (int argc, char **argv)
 
     free (source);
     free (result);
+
+    end = clock();
+    double duration = ((double)end - start) / CLOCKS_PER_SEC;
+    if (debug)
+    {
+        printf("Duration: %f\n",duration);
+    }
 
     return EXIT_SUCCESS;
 }
