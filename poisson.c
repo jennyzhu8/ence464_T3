@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <pthread.h>
 
 
 /**
@@ -47,10 +49,17 @@
 
 // Global flag
 // Set to true when operating in debug mode to enable verbose logging
-static bool debug = false;
+static bool debug = true;
 
 // Macro to calculate the 1D index by flattening the 3D index
 #define to1D(i,j,k,n) (((k) * n * n) + ((j) * n) + (i))
+
+typedef struct
+{
+    int thread_id;      // Unique id of the worker thread
+    int start;          // Start index of the worker thread
+    int end;            // End index of the worker thread
+} WorkerArgs;
 
 /**
  * @brief Solve Poissons equation for a given cube with Dirichlet boundary
@@ -100,43 +109,43 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
         int j = 0;
         int k = 0;
         
-        // Split each axis into separate components
+    //     // Split each axis into separate components
 
-        // for (int i = 0; i < n; i++) {
-        //     for (int j = 0; j < n; j++) {
-        //         for (int k = 0; k < n; k++) {
+    //     // for (int i = 0; i < n; i++) {
+    //     //     for (int j = 0; j < n; j++) {
+    //     //         for (int k = 0; k < n; k++) {
 
-        //             if (i==0) {
-        //                 (i_component = curr[to1D(i+1,j,k,n)] * 2.0);
-        //             } else if (i==n-1) {
-        //                 i_component = curr[to1D(i-1,j,k,n)] * 2.0;
-        //             } else {
-        //                 i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
-        //             }
+    //     //             if (i==0) {
+    //     //                 (i_component = curr[to1D(i+1,j,k,n)] * 2.0);
+    //     //             } else if (i==n-1) {
+    //     //                 i_component = curr[to1D(i-1,j,k,n)] * 2.0;
+    //     //             } else {
+    //     //                 i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
+    //     //             }
 
-        //             if (j==0) {
-        //                 j_component = curr[to1D(i,j+1,k,n)] * 2.0;
-        //             } else if (j==n-1) {
-        //                 j_component = curr[to1D(i,j-1,k,n)] * 2.0;
-        //             } else {
-        //                 j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
-        //             }
+    //     //             if (j==0) {
+    //     //                 j_component = curr[to1D(i,j+1,k,n)] * 2.0;
+    //     //             } else if (j==n-1) {
+    //     //                 j_component = curr[to1D(i,j-1,k,n)] * 2.0;
+    //     //             } else {
+    //     //                 j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
+    //     //             }
 
-        //             if (k==0) {
-        //                 k_component = 0.0;
-        //             } else if (k==n-1) {
-        //                 k_component = curr[to1D(i,j,k-1,n)] * 2.0;
-        //             } else {
-        //                 k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
-        //             }
+    //     //             if (k==0) {
+    //     //                 k_component = 0.0;
+    //     //             } else if (k==n-1) {
+    //     //                 k_component = curr[to1D(i,j,k-1,n)] * 2.0;
+    //     //             } else {
+    //     //                 k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
+    //     //             }
 
                   
-        //             next[to1D(i,j,k,n)] = (i_component + j_component + k_component -
-        //                         ((delta * delta) * source[to1D(i,j,k,n)])) / 6.0;
+    //     //             next[to1D(i,j,k,n)] = (i_component + j_component + k_component -
+    //     //                         ((delta * delta) * source[to1D(i,j,k,n)])) / 6.0;
                     
-        //         }
-        //     }
-        // }
+    //     //         }
+    //     //     }
+    //     // }
 
 
 
@@ -251,7 +260,6 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
         //                 next[to1D(i,j,k,n)] = (i_component + j_component + k_component
         //                                         - ((delta*delta)*source[to1D(i,j,k,n)])) / 6.0;
 
-        //                 printf("Next: %f\n", next[to1D(i,j,k,n)]);
         //             }
         //         }
         //     }
@@ -279,11 +287,47 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
 
 int main (int argc, char **argv)
 {
+    clock_t start, end;
+    start = clock();
     // Default settings for solver
     int iterations = 10;
     int n = 5;
     int threads = 1;
     float delta = 1;
+
+    // Storage for the thread handles and arguments
+    // will exist for the entire lifetime of the program.
+    pthread_t threads[threads];
+    WorkerArgs args[threads];
+
+    // Launch each of the new worker threads
+    for (int i = 0; i < threads; i++)
+    {
+        // Fill in the arguments to the worker
+        args[i].thread_id = i;
+        args[i].start = (n * i) / threads;
+        args[i].end = (n * (i + 1)) / threads;
+
+        // Create the worker thread
+        if (pthread_create (&threads[i], NULL, &worker, &args[i]) != 0)
+        {
+            fprintf (stderr, "Error creating worker thread!\n");
+            return EXIT_FAILURE;
+        }
+    }
+
+    // Wait for all the threads to finish using join ()
+    for (int i = 0; i < threads; i++)
+    {
+        pthread_join (threads[i], NULL);
+    }
+
+
+
+
+
+
+
 
     // parse the command line arguments
     for (int i = 1; i < argc; ++i)
@@ -366,5 +410,12 @@ int main (int argc, char **argv)
     free (source);
     free (result);
 
+
+    end = clock();
+    double duration = ((double)end - start) / CLOCKS_PER_SEC;
+    if (debug)
+    {
+        printf("Duration: %f\n",duration);
+    }
     return EXIT_SUCCESS;
 }

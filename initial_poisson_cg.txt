@@ -1,0 +1,292 @@
+--------------------------------------------------------------------------------
+I1 cache:         32768 B, 64 B, 8-way associative
+D1 cache:         32768 B, 64 B, 8-way associative
+LL cache:         16777216 B, 64 B, 16-way associative
+Command:          ./poisson -n 51 -i 300
+Data file:        cachegrind.out.77063
+Events recorded:  Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Events shown:     Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Event sort order: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Thresholds:       0.1 100 100 100 100 100 100 100 100
+Include dirs:     
+User annotated:   
+Auto-annotation:  on
+
+--------------------------------------------------------------------------------
+Ir                     I1mr           ILmr           Dr                     D1mr                DLmr            Dw                   D1mw               DLmw            
+--------------------------------------------------------------------------------
+6,407,233,239 (100.0%) 1,683 (100.0%) 1,637 (100.0%) 3,257,298,023 (100.0%) 19,414,766 (100.0%) 34,241 (100.0%) 158,447,854 (100.0%) 4,975,489 (100.0%) 17,386 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                     I1mr         ILmr        Dr                     D1mr                DLmr            Dw                   D1mw               DLmw             file:function
+--------------------------------------------------------------------------------
+6,401,035,562 (99.90%)  19 ( 1.13%) 19 ( 1.16%) 3,255,980,119 (99.96%) 19,410,900 (99.98%) 32,837 (95.90%) 157,637,715 (99.49%) 4,974,599 (99.98%) 16,581 (95.37%)  /file/UsersB/bst72/Home/ENCE464/term2Assignment/Group33/poisson.c:poisson_dirichlet(int, double*, int, int, float)
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: /file/UsersB/bst72/Home/ENCE464/term2Assignment/Group33/poisson.c
+--------------------------------------------------------------------------------
+Ir                     I1mr       ILmr       Dr                   D1mr               DLmr            Dw                  D1mw               DLmw            
+
+-- line 60 ----------------------------------------
+            .          .          .                    .                  .               .                   .                  .               .            * @param n             The edge length of the cube. n^3 number of elements. -n
+            .          .          .                    .                  .               .                   .                  .               .            * @param source        Pointer to the source term cube, a.k.a. forcing function.
+            .          .          .                    .                  .               .                   .                  .               .            * @param iterations    Number of iterations to perform. -i
+            .          .          .                    .                  .               .                   .                  .               .            * @param threads       Number of threads to use for solving.
+            .          .          .                    .                  .               .                   .                  .               .            * @param delta         Grid spacing.
+            .          .          .                    .                  .               .                   .                  .               .            * @return double*      Solution to Poissons equation.  Caller must free.
+            .          .          .                    .                  .               .                   .                  .               .            */
+            .          .          .                    .                  .               .                   .                  .               .           double* poisson_dirichlet (int n, double *source, int iterations, int threads, float delta)
+           10 ( 0.00%) 0          0                    1 ( 0.00%)         0               0                   7 ( 0.00%)         0               0           {
+            3 ( 0.00%) 0          0                    1 ( 0.00%)         0               0                   0                  0               0               if (debug)
+            .          .          .                    .                  .               .                   .                  .               .               {
+           12 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           4 ( 0.00%)         0               0                   1 ( 0.00%)         0               0                   printf ("Starting solver with:\n"
+            .          .          .                    .                  .               .                   .                  .               .                          "n = %i\n"
+            .          .          .                    .                  .               .                   .                  .               .                          "iterations = %i\n"
+            .          .          .                    .                  .               .                   .                  .               .                          "threads = %i\n"
+            .          .          .                    .                  .               .                   .                  .               .                          "delta = %f\n",
+            .          .          .                    .                  .               .                   .                  .               .                          n, iterations, threads, delta);
+            .          .          .                    .                  .               .                   .                  .               .               }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // Allocate some buffers to calculate the solution in
+            8 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           2 ( 0.00%)         0               0                   2 ( 0.00%)         0               0               double *curr = (double*)calloc (n * n * n, sizeof (double)); // prev step
+            8 ( 0.00%) 0          0                    2 ( 0.00%)         0               0                   2 ( 0.00%)         0               0               double *next = (double*)calloc (n * n * n, sizeof (double)); // next step
+            .          .          .                    .                  .               .                   .                  .               .               double *temp;
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // Ensure we haven't run out of memory
+            4 ( 0.00%) 0          0                    2 ( 0.00%)         0               0                   0                  0               0               if (curr == NULL || next == NULL)
+            .          .          .                    .                  .               .                   .                  .               .               {
+            .          .          .                    .                  .               .                   .                  .               .                   fprintf (stderr, "Error: ran out of memory when trying to allocate %i sized cube\n", n);
+            .          .          .                    .                  .               .                   .                  .               .                   exit (EXIT_FAILURE);
+            .          .          .                    .                  .               .                   .                  .               .               }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // TODO: solve Poisson's equation for the given inputs
+            .          .          .                    .                  .               .                   .                  .               .               double i_component;
+            .          .          .                    .                  .               .                   .                  .               .               double j_component;
+            .          .          .                    .                  .               .                   .                  .               .               double k_component;
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // Iterate over 3 dimensions i, j, and k
+            .          .          .                    .                  .               .                   .                  .               .               // Need to consider the boundary conditions for each side of the cube
+        1,205 ( 0.00%) 2 ( 0.12%) 2 ( 0.12%)         902 ( 0.00%)         0               0                   1 ( 0.00%)         0               0               for (int num=0; num<iterations; num++)
+            .          .          .                    .                  .               .                   .                  .               .               {  
+          300 ( 0.00%) 0          0                    0                  0               0                 300 ( 0.00%)         0               0                   int i = 0;
+          300 ( 0.00%) 0          0                    0                  0               0                 300 ( 0.00%)         0               0                   int j = 0;
+          300 ( 0.00%) 0          0                    0                  0               0                 300 ( 0.00%)         0               0                   int k = 0;
+            .          .          .                    .                  .               .                   .                  .               .                   
+            .          .          .                    .                  .               .                   .                  .               .               //     // Split each axis into separate components
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               //     // for (int i = 0; i < n; i++) {
+            .          .          .                    .                  .               .                   .                  .               .               //     //     for (int j = 0; j < n; j++) {
+            .          .          .                    .                  .               .                   .                  .               .               //     //         for (int k = 0; k < n; k++) {
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               //     //             if (i==0) {
+-- line 110 ----------------------------------------
+-- line 136 ----------------------------------------
+            .          .          .                    .                  .               .                   .                  .               .               //     //                         ((delta * delta) * source[to1D(i,j,k,n)])) / 6.0;
+            .          .          .                    .                  .               .                   .                  .               .                               
+            .          .          .                    .                  .               .                   .                  .               .               //     //         }
+            .          .          .                    .                  .               .                   .                  .               .               //     //     }
+            .          .          .                    .                  .               .                   .                  .               .               //     // }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .           
+  119,387,100 ( 1.86%) 2 ( 0.12%) 2 ( 0.12%)  79,591,200 ( 2.44%)         0               0                   0                  0               0                   while (k<n)
+            .          .          .                    .                  .               .                   .                  .               .                   {   
+   79,590,600 ( 1.24%) 0          0           39,795,300 ( 1.22%)         0               0                   0                  0               0                       if (k==0)
+            .          .          .                    .                  .               .                   .                  .               .                       {
+   12,484,800 ( 0.19%) 1 ( 0.06%) 1 ( 0.06%)   5,462,100 ( 0.17%)         0               0             780,300 ( 0.49%)    97,799 ( 1.97%)    325 ( 1.87%)                  next[to1D(i,j,k,n)] = 0;
+            .          .          .                    .                  .               .                   .                  .               .                       }
+            .          .          .                    .                  .               .                   .                  .               .                       else
+            .          .          .                    .                  .               .                   .                  .               .                       {
+   78,030,000 ( 1.22%) 0          0           39,015,000 ( 1.20%)         0               0                   0                  0               0                           if (i==0)
+            .          .          .                    .                  .               .                   .                  .               .                           {   
+   13,770,000 ( 0.21%) 1 ( 0.06%) 1 ( 0.06%)   6,120,000 ( 0.19%)     3,900 ( 0.02%)      1 ( 0.00%)    765,000 ( 0.48%)         0               0                               i_component = curr[to1D(i+1,j,k,n)]*2;
+            .          .          .                    .                  .               .                   .                  .               .                           }
+  153,000,000 ( 2.39%) 0          0           76,500,000 ( 2.35%)         0               0                   0                  0               0                           else if (i==(n-1))
+            .          .          .                    .                  .               .                   .                  .               .                           {
+   13,770,000 ( 0.21%) 0          0            6,120,000 ( 0.19%)         0               0             765,000 ( 0.48%)         0               0                               i_component = curr[to1D(i-1,j,k,n)]*2;
+            .          .          .                    .                  .               .                   .                  .               .                           }
+            .          .          .                    .                  .               .                   .                  .               .                           else
+            .          .          .                    .                  .               .                   .                  .               .                           {
+1,199,520,000 (18.72%) 2 ( 0.12%) 2 ( 0.12%) 599,760,000 (18.41%)    78,600 ( 0.40%)      5 ( 0.01%) 37,485,000 (23.66%)         0               0                               i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
+            .          .          .                    .                  .               .                   .                  .               .                           }
+            .          .          .                    .                  .               .                   .                  .               .           
+   78,030,000 ( 1.22%) 1 ( 0.06%) 1 ( 0.06%)  39,015,000 ( 1.20%)         0               0                   0                  0               0                           if (j==0)
+            .          .          .                    .                  .               .                   .                  .               .                           {   
+   13,770,000 ( 0.21%) 1 ( 0.06%) 1 ( 0.06%)   6,120,000 ( 0.19%)   109,200 ( 0.56%)      8 ( 0.02%)    765,000 ( 0.48%)         0               0                               j_component = curr[to1D(i,j+1,k,n)]*2;
+            .          .          .                    .                  .               .                   .                  .               .                           }
+  153,000,000 ( 2.39%) 0          0           76,500,000 ( 2.35%)         0               0                   0                  0               0                           else if (j==(n-1))
+            .          .          .                    .                  .               .                   .                  .               .                           {
+   13,770,000 ( 0.21%) 0          0            6,120,000 ( 0.19%)         0               0             765,000 ( 0.48%)         0               0                               j_component = curr[to1D(i,j-1,k,n)]*2;
+            .          .          .                    .                  .               .                   .                  .               .                           }
+            .          .          .                    .                  .               .                   .                  .               .                           else
+            .          .          .                    .                  .               .                   .                  .               .                           {
+1,199,520,000 (18.72%) 2 ( 0.12%) 2 ( 0.12%) 599,760,000 (18.41%) 4,685,400 (24.13%)    311 ( 0.91%) 37,485,000 (23.66%)         0               0                               j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
+            .          .          .                    .                  .               .                   .                  .               .                           }
+            .          .          .                    .                  .               .                   .                  .               .           
+  156,060,000 ( 2.44%) 1 ( 0.06%) 1 ( 0.06%)  78,030,000 ( 2.40%)         0               0                   0                  0               0                           if (k==(n-1))
+            .          .          .                    .                  .               .                   .                  .               .                           {
+   14,045,400 ( 0.22%) 0          0            6,242,400 ( 0.19%)    97,500 ( 0.50%)      0             780,300 ( 0.49%)         0               0                               k_component = curr[to1D(i,j,k-1,n)]*2;
+            .          .          .                    .                  .               .                   .                  .               .                           }
+            .          .          .                    .                  .               .                   .                  .               .                           else
+            .          .          .                    .                  .               .                   .                  .               .                           {
+1,223,510,400 (19.10%) 2 ( 0.12%) 2 ( 0.12%) 611,755,200 (18.78%) 9,559,199 (49.24%) 16,256 (47.48%) 38,234,700 (24.13%)         0               0                               k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
+            .          .          .                    .                  .               .                   .                  .               .                           }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .                           // Calculate voltage at voxel
+  702,270,000 (10.96%) 1 ( 0.06%) 1 ( 0.06%) 390,150,000 (11.98%)         0               0          39,015,000 (24.62%) 4,876,800 (98.02%) 16,256 (93.50%)                  next[to1D(i,j,k,n)] = (i_component + j_component + k_component
+  897,345,000 (14.01%) 1 ( 0.06%) 1 ( 0.06%) 390,150,000 (11.98%) 4,877,100 (25.12%) 16,256 (47.48%)          0                  0               0                                                   - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
+            .          .          .                    .                  .               .                   .                  .               .                       }
+            .          .          .                    .                  .               .                   .                  .               .           
+   39,795,300 ( 0.62%) 0          0           39,795,300 ( 1.22%)         0               0                   0                  0               0                       i++;
+  119,385,900 ( 1.86%) 0          0           79,590,600 ( 2.44%)         0               0                   0                  0               0                       if (i==n)
+            .          .          .                    .                  .               .                   .                  .               .                       {
+      780,300 ( 0.01%) 0          0              780,300 ( 0.02%)         0               0                   0                  0               0                           j++;
+      780,300 ( 0.01%) 0          0                    0                  0               0             780,300 ( 0.49%)         0               0                           i=0;
+            .          .          .                    .                  .               .                   .                  .               .                       }
+  119,385,900 ( 1.86%) 0          0           79,590,600 ( 2.44%)         0               0                   0                  0               0                       if (j==n)
+            .          .          .                    .                  .               .                   .                  .               .                       {
+       15,300 ( 0.00%) 0          0               15,300 ( 0.00%)         0               0                   0                  0               0                           k++;
+       15,300 ( 0.00%) 0          0                    0                  0               0              15,300 ( 0.01%)         0               0                           j=0;
+            .          .          .                    .                  .               .                   .                  .               .                       }
+            .          .          .                    .                  .               .                   .                  .               .                   }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .                   // Old version with for loops for i, j, and k
+            .          .          .                    .                  .               .                   .                  .               .                   
+            .          .          .                    .                  .               .                   .                  .               .                   // for (int i=0; i<n; i++)
+            .          .          .                    .                  .               .                   .                  .               .                   // {
+            .          .          .                    .                  .               .                   .                  .               .                   //     for (int j=0; j<n; j++)
+-- line 209 ----------------------------------------
+-- line 253 ----------------------------------------
+            .          .          .                    .                  .               .                   .                  .               .                   //                                         - ((delta*delta)*source[to1D(i,j,k,n)])) / 6.0;
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .                   //             }
+            .          .          .                    .                  .               .                   .                  .               .                   //         }
+            .          .          .                    .                  .               .                   .                  .               .                   //     }
+            .          .          .                    .                  .               .                   .                  .               .                   // }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .                   // Set next as the new current and to rewrite next in the next iteration.
+          600 ( 0.00%) 0          0                  300 ( 0.00%)         0               0                 300 ( 0.00%)         0               0                   temp = curr; // a new pointer to the memory space of curr
+          600 ( 0.00%) 0          0                  300 ( 0.00%)         0               0                 300 ( 0.00%)         0               0                   curr = next; // curr now points to the memory space of next
+          600 ( 0.00%) 0          0                  300 ( 0.00%)         0               0                 300 ( 0.00%)         0               0                   next = temp; // next now points to memory space of temp which is the old memory space of curr
+            .          .          .                    .                  .               .                   .                  .               .               }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // Free one of the buffers and return the correct answer in the other.
+            .          .          .                    .                  .               .                   .                  .               .               // The caller is now responsible for free'ing the returned pointer.
+            3 ( 0.00%) 0          0                    1 ( 0.00%)         0               0                   1 ( 0.00%)         0               0               free (next);
+            .          .          .                    .                  .               .                   .                  .               .           
+            3 ( 0.00%) 0          0                    1 ( 0.00%)         1 ( 0.00%)      0                   0                  0               0               if (debug)
+            .          .          .                    .                  .               .                   .                  .               .               {
+            3 ( 0.00%) 0          0                    0                  0               0                   1 ( 0.00%)         0               0                   printf ("Finished solving.\n");
+            .          .          .                    .                  .               .                   .                  .               .               }
+            .          .          .                    .                  .               .                   .                  .               .           
+            1 ( 0.00%) 0          0                    1 ( 0.00%)         0               0                   0                  0               0               return curr;
+            2 ( 0.00%) 0          0                    2 ( 0.00%)         0               0                   0                  0               0           }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .           int main (int argc, char **argv)
+            7 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           1 ( 0.00%)         0               0                   4 ( 0.00%)         0               0           {
+            .          .          .                    .                  .               .                   .                  .               .               clock_t start, end;
+            2 ( 0.00%) 0          0                    0                  0               0                   2 ( 0.00%)         0               0               start = clock();
+            .          .          .                    .                  .               .                   .                  .               .               // Default settings for solver
+            1 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           0                  0               0                   1 ( 0.00%)         0               0               int iterations = 10;
+            1 ( 0.00%) 0          0                    0                  0               0                   1 ( 0.00%)         0               0               int n = 5;
+            1 ( 0.00%) 0          0                    0                  0               0                   1 ( 0.00%)         0               0               int threads = 1;
+            2 ( 0.00%) 0          0                    1 ( 0.00%)         1 ( 0.00%)      1 ( 0.00%)          1 ( 0.00%)         0               0               float delta = 1;
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // parse the command line arguments
+           13 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           8 ( 0.00%)         0               0                   1 ( 0.00%)         0               0               for (int i = 1; i < argc; ++i)
+            .          .          .                    .                  .               .                   .                  .               .               {
+           48 ( 0.00%) 2 ( 0.12%) 2 ( 0.12%)          12 ( 0.00%)         1 ( 0.00%)      0                   4 ( 0.00%)         0               0                   if (strcmp (argv[i], "-h") == 0 || strcmp (argv[i], "--help") == 0)
+            .          .          .                    .                  .               .                   .                  .               .                   {
+            .          .          .                    .                  .               .                   .                  .               .                       printf ("Usage: poisson [-n size] [-i iterations] [-t threads] [--debug]\n");
+            .          .          .                    .                  .               .                   .                  .               .                       return EXIT_SUCCESS;
+            .          .          .                    .                  .               .                   .                  .               .                   }
+            .          .          .                    .                  .               .                   .                  .               .           
+           24 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           6 ( 0.00%)         0               0                   2 ( 0.00%)         0               0                   if (strcmp (argv[i], "-n") == 0)
+            .          .          .                    .                  .               .                   .                  .               .                   {
+            4 ( 0.00%) 0          0                    2 ( 0.00%)         0               0                   0                  0               0                       if (i == argc - 1)
+            .          .          .                    .                  .               .                   .                  .               .                       {
+            .          .          .                    .                  .               .                   .                  .               .                           fprintf (stderr, "Error: expected size after -n!\n");
+            .          .          .                    .                  .               .                   .                  .               .                           return EXIT_FAILURE;
+            .          .          .                    .                  .               .                   .                  .               .                       }
+            .          .          .                    .                  .               .                   .                  .               .           
+           10 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           4 ( 0.00%)         0               0                   2 ( 0.00%)         0               0                       n = atoi (argv[++i]);
+            .          .          .                    .                  .               .                   .                  .               .                   }
+            .          .          .                    .                  .               .                   .                  .               .           
+           24 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           6 ( 0.00%)         0               0                   2 ( 0.00%)         0               0                   if (strcmp (argv[i], "-i") == 0)
+            .          .          .                    .                  .               .                   .                  .               .                   {
+            4 ( 0.00%) 0          0                    2 ( 0.00%)         0               0                   0                  0               0                       if (i == argc - 1)
+            .          .          .                    .                  .               .                   .                  .               .                       {
+            .          .          .                    .                  .               .                   .                  .               .                           fprintf (stderr, "Error: expected iterations after -i!\n");
+            .          .          .                    .                  .               .                   .                  .               .                           return EXIT_FAILURE;
+            .          .          .                    .                  .               .                   .                  .               .                       }
+            .          .          .                    .                  .               .                   .                  .               .           
+           10 ( 0.00%) 0          0                    4 ( 0.00%)         0               0                   2 ( 0.00%)         0               0                       iterations = atoi (argv[++i]);
+            .          .          .                    .                  .               .                   .                  .               .                   }
+            .          .          .                    .                  .               .                   .                  .               .           
+           24 ( 0.00%) 2 ( 0.12%) 2 ( 0.12%)           6 ( 0.00%)         0               0                   2 ( 0.00%)         0               0                   if (strcmp (argv[i], "-t") == 0)
+            .          .          .                    .                  .               .                   .                  .               .                   {
+            .          .          .                    .                  .               .                   .                  .               .                       if (i == argc - 1)
+            .          .          .                    .                  .               .                   .                  .               .                       {
+            .          .          .                    .                  .               .                   .                  .               .                           fprintf (stderr, "Error: expected threads after -t!\n");
+            .          .          .                    .                  .               .                   .                  .               .                           return EXIT_FAILURE;
+            .          .          .                    .                  .               .                   .                  .               .                       }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .                       threads = atoi (argv[++i]);
+            .          .          .                    .                  .               .                   .                  .               .                   }
+            .          .          .                    .                  .               .                   .                  .               .           
+           24 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           6 ( 0.00%)         0               0                   2 ( 0.00%)         0               0                   if (strcmp (argv[i], "--debug") == 0)
+            .          .          .                    .                  .               .                   .                  .               .                   {
+            .          .          .                    .                  .               .                   .                  .               .                       debug = true;
+            .          .          .                    .                  .               .                   .                  .               .                   }
+            .          .          .                    .                  .               .                   .                  .               .               }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // Ensure we have an odd sized cube
+            4 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           1 ( 0.00%)         0               0                   0                  0               0               if (n % 2 == 0)
+            .          .          .                    .                  .               .                   .                  .               .               {
+            .          .          .                    .                  .               .                   .                  .               .                   fprintf (stderr, "Error: n should be an odd number!\n");
+            .          .          .                    .                  .               .                   .                  .               .                   return EXIT_FAILURE;
+            .          .          .                    .                  .               .                   .                  .               .               }
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // Create a source term with a single point in the centre
+            8 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           2 ( 0.00%)         0               0                   2 ( 0.00%)         0               0               double *source = (double*)calloc (n * n * n, sizeof (double));
+            2 ( 0.00%) 0          0                    1 ( 0.00%)         0               0                   0                  0               0               if (source == NULL)
+            .          .          .                    .                  .               .                   .                  .               .               {
+            .          .          .                    .                  .               .                   .                  .               .                   fprintf (stderr, "Error: failed to allocated source term (n=%i)\n", n);
+            .          .          .                    .                  .               .                   .                  .               .                   return EXIT_FAILURE;
+            .          .          .                    .                  .               .                   .                  .               .               }
+            .          .          .                    .                  .               .                   .                  .               .           
+           13 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           4 ( 0.00%)         1 ( 0.00%)      1 ( 0.00%)          1 ( 0.00%)         1 ( 0.00%)      1 ( 0.01%)      source[(n * n * n) / 2] = 1;
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // Calculate the resulting field with Dirichlet conditions
+            9 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           5 ( 0.00%)         0               0                   2 ( 0.00%)         1 ( 0.00%)      0               double *result = poisson_dirichlet (n, source, iterations, threads, delta);
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .               // Print out the middle slice of the cube for validation
+          209 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)         155 ( 0.00%)         0               0                   1 ( 0.00%)         1 ( 0.00%)      0               for (int x = 0; x < n; ++x)
+            .          .          .                    .                  .               .                   .                  .               .               {
+       10,659 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)       7,905 ( 0.00%)         0               0                  51 ( 0.00%)         0               0                   for (int y = 0; y < n; ++y)
+            .          .          .                    .                  .               .                   .                  .               .                   {
+       59,823 ( 0.00%) 0          0               18,207 ( 0.00%)       330 ( 0.00%)      0               2,601 ( 0.00%)         0               0                       printf ("%0.5f ", result[((n / 2) * n + y) * n + x]);
+            .          .          .                    .                  .               .                   .                  .               .                   }
+          102 ( 0.00%) 0          0                    0                  0               0                  51 ( 0.00%)         0               0                   printf ("\n");
+            .          .          .                    .                  .               .                   .                  .               .               }
+            .          .          .                    .                  .               .                   .                  .               .           
+            3 ( 0.00%) 0          0                    1 ( 0.00%)         0               0                   1 ( 0.00%)         0               0               free (source);
+            3 ( 0.00%) 0          0                    1 ( 0.00%)         0               0                   1 ( 0.00%)         0               0               free (result);
+            .          .          .                    .                  .               .                   .                  .               .           
+            .          .          .                    .                  .               .                   .                  .               .           
+            2 ( 0.00%) 0          0                    0                  0               0                   2 ( 0.00%)         0               0               end = clock();
+            8 ( 0.00%) 1 ( 0.06%) 1 ( 0.06%)           3 ( 0.00%)         1 ( 0.00%)      0                   1 ( 0.00%)         0               0               double duration = ((double)end - start) / CLOCKS_PER_SEC;
+            3 ( 0.00%) 0          0                    1 ( 0.00%)         1 ( 0.00%)      0                   0                  0               0               if (debug)
+            .          .          .                    .                  .               .                   .                  .               .               {
+            6 ( 0.00%) 0          0                    1 ( 0.00%)         0               0                   1 ( 0.00%)         0               0                   printf("Duration: %f\n",duration);
+            .          .          .                    .                  .               .                   .                  .               .               }
+            1 ( 0.00%) 0          0                    0                  0               0                   0                  0               0               return EXIT_SUCCESS;
+            2 ( 0.00%) 0          0                    2 ( 0.00%)         0               0                   0                  0               0           }
+
+--------------------------------------------------------------------------------
+Ir                     I1mr        ILmr        Dr                     D1mr                DLmr            Dw                   D1mw               DLmw            
+--------------------------------------------------------------------------------
+6,401,106,618 (99.90%) 37 ( 2.20%) 37 ( 2.26%) 3,256,006,466 (99.96%) 19,411,235 (99.98%) 32,839 (95.91%) 157,640,457 (99.49%) 4,974,602 (99.98%) 16,582 (95.38%)  events annotated
+
