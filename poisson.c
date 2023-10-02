@@ -49,7 +49,7 @@
 
 // Global flag
 // Set to true when operating in debug mode to enable verbose logging
-static bool debug = true;
+static bool debug = false;
 
 // Macro to calculate the 1D index by flattening the 3D index
 #define to1D(i,j,k,n) (((k) * n * n) + ((j) * n) + (i))
