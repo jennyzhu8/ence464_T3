@@ -47,10 +47,10 @@
 
 // Global flag
 // Set to true when operating in debug mode to enable verbose logging
-static bool debug = true;
+static bool debug = false;
 
 // Macro to calculate the 1D index by flattening the 3D index
-#define to1D(i,j,k,n) ((k * n * n) + (j * n) + i)
+#define to1D(i,j,k,n) (((k) * n * n) + ((j) * n) + (i))
 
 /**
  * @brief Solve Poissons equation for a given cube with Dirichlet boundary
@@ -91,26 +91,57 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
     double i_component;
     double j_component;
     double k_component;
-    int i;
-    int j;
-    int k;
+
     // Iterate over 3 dimensions i, j, and k
     // Need to consider the boundary conditions for each side of the cube
     for (int num=0; num<iterations; num++)
     {  
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        
         // Split each axis into separate components
-        i_component=0;
-        j_component=0;
-        k_component=0;
 
-        // New version with only one while loop and manual indexing of i, j, and k
-        i=0;
-        j=0;
-        k=0;
+        // for (int i = 0; i < n; i++) {
+        //     for (int j = 0; j < n; j++) {
+        //         for (int k = 0; k < n; k++) {
+
+        //             if (i==0) {
+        //                 (i_component = curr[to1D(i+1,j,k,n)] * 2.0);
+        //             } else if (i==n-1) {
+        //                 i_component = curr[to1D(i-1,j,k,n)] * 2.0;
+        //             } else {
+        //                 i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
+        //             }
+
+        //             if (j==0) {
+        //                 j_component = curr[to1D(i,j+1,k,n)] * 2.0;
+        //             } else if (j==n-1) {
+        //                 j_component = curr[to1D(i,j-1,k,n)] * 2.0;
+        //             } else {
+        //                 j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
+        //             }
+
+        //             if (k==0) {
+        //                 k_component = 0.0;
+        //             } else if (k==n-1) {
+        //                 k_component = curr[to1D(i,j,k-1,n)] * 2.0;
+        //             } else {
+        //                 k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
+        //             }
+
+                  
+        //             next[to1D(i,j,k,n)] = (i_component + j_component + k_component -
+        //                         ((delta * delta) * source[to1D(i,j,k,n)])) / 6.0;
+                    
+        //         }
+        //     }
+        // }
+
+
 
         while (k<n)
         {   
-            // Boundary conditions
             if (k==0)
             {
                 next[to1D(i,j,k,n)] = 0;
@@ -157,7 +188,6 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
                                         - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
             }
 
-            // Manually index i, j, and k
             i++;
             if (i==n)
             {
@@ -177,47 +207,52 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
         // {
         //     for (int j=0; j<n; j++)
         //     {
-        //         next[to1D(i,j,0,n)] = 0;
-
-        //         for (int k=1; k<n; k++)
+        //         for (int k=0; k<n; k++)
         //         {
-        //             if (i==0)
-        //             {   
-        //                 i_component = curr[to1D(i+1,j,k,n)]*2;
-        //             }
-        //             else if (i==(n-1))
-        //             {
-        //                 i_component = curr[to1D(i-1,j,k,n)]*2;
-        //             }
-        //             else
-        //             {
-        //                 i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
-        //             }
+        //             if (k==0) {   
+        //                 next[to1D(i,j,k,n)] = 0.0;
+        //             } else {
+        //                 if (i==0)
+        //                 {   
+                            
+        //                     i_component = curr[to1D(i+1,j,k,n)]*2.0;
+        //                 }
+        //                 else if (i==(n-1))
+        //                 {
+        //                     i_component = curr[to1D(i-1,j,k,n)]*2.0;
+        //                 }
+        //                 else
+        //                 {
+        //                     i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
+        //                 }
 
-        //             if (j==0)
-        //             {   
-        //                 j_component = curr[to1D(i,j+1,k,n)]*2;
-        //             }
-        //             else if (j==(n-1))
-        //             {
-        //                 j_component = curr[to1D(i,j-1,k,n)]*2;
-        //             }
-        //             else
-        //             {
-        //                 j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
-        //             }
+        //                 if (j==0)
+        //                 {   
+        //                     j_component = curr[to1D(i,j+1,k,n)]*2.0;
+        //                 }
+        //                 else if (j==(n-1))
+        //                 {
+        //                     j_component = curr[to1D(i,j-1,k,n)]*2.0;
+        //                 }
+        //                 else
+        //                 {
+        //                     j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
+        //                 }
+                        
+        //                 if (k==(n-1))
+        //                 {
+        //                     k_component = curr[to1D(i,j,k-1,n)]*2.0;
+        //                 }
+        //                 else
+        //                 {
+        //                     k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
+        //                 }
 
-        //             if (k==(n-1))
-        //             {
-        //                 k_component = curr[to1D(i,j,k-1,n)]*2;
-        //             }
-        //             else
-        //             {
-        //                 k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
-        //             }
+        //                 next[to1D(i,j,k,n)] = (i_component + j_component + k_component
+        //                                         - ((delta*delta)*source[to1D(i,j,k,n)])) / 6.0;
 
-        //             next[to1D(i,j,k,n)] = (i_component + j_component + k_component
-        //                                     - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
+        //                 printf("Next: %f\n", next[to1D(i,j,k,n)]);
+        //             }
         //         }
         //     }
         // }
