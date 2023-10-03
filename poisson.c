@@ -142,122 +142,119 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
 
 
 
-        while (k<n)
-        {
-            if (k==0)
-            {
-                next[to1D(i,j,k,n)] = 0;
-            }
-            else
-            {
-                if (i==0)
-                {   
-                    i_component = curr[to1D(i+1,j,k,n)]*2;
-                }
-                else if (i==(n-1))
-                {
-                    i_component = curr[to1D(i-1,j,k,n)]*2;
-                }
-                else
-                {
-                    i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
-                }
+        // while (k<n)
+        // {
+        //     if (k==0)
+        //     {
+        //         next[to1D(i,j,k,n)] = 0;
+        //     }
+        //     else
+        //     {
+        //         if (i==0)
+        //         {   
+        //             i_component = curr[to1D(i+1,j,k,n)]*2;
+        //         }
+        //         else if (i==(n-1))
+        //         {
+        //             i_component = curr[to1D(i-1,j,k,n)]*2;
+        //         }
+        //         else
+        //         {
+        //             i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
+        //         }
 
-                if (j==0)
-                {   
-                    j_component = curr[to1D(i,j+1,k,n)]*2;
-                }
-                else if (j==(n-1))
-                {
-                    j_component = curr[to1D(i,j-1,k,n)]*2;
-                }
-                else
-                {
-                    j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
-                }
+        //         if (j==0)
+        //         {   
+        //             j_component = curr[to1D(i,j+1,k,n)]*2;
+        //         }
+        //         else if (j==(n-1))
+        //         {
+        //             j_component = curr[to1D(i,j-1,k,n)]*2;
+        //         }
+        //         else
+        //         {
+        //             j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
+        //         }
 
-                if (k==(n-1))
-                {
-                    k_component = curr[to1D(i,j,k-1,n)]*2;
-                }
-                else
-                {
-                    k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
-                }
+        //         if (k==(n-1))
+        //         {
+        //             k_component = curr[to1D(i,j,k-1,n)]*2;
+        //         }
+        //         else
+        //         {
+        //             k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
+        //         }
 
-                // Calculate voltage at voxel
-                next[to1D(i,j,k,n)] = (i_component + j_component + k_component
-                                        - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
-            }
+        //         // Calculate voltage at voxel
+        //         next[to1D(i,j,k,n)] = (i_component + j_component + k_component
+        //                                 - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
+        //     }
 
-            i++;
-            if (i==n)
-            {
-                j++;
-                i=0;
-            }
-            if (j==n)
-            {
-                k++;
-                j=0;
-            }
-        }
+        //     i++;
+        //     if (i==n)
+        //     {
+        //         j++;
+        //         i=0;
+        //     }
+        //     if (j==n)
+        //     {
+        //         k++;
+        //         j=0;
+        //     }
+        // }
 
         // Old version with for loops for i, j, and k
         
-        // for (int i=0; i<n; i++)
-        // {
-        //     for (int j=0; j<n; j++)
-        //     {
-        //         for (int k=0; k<n; k++)
-        //         {
-        //             if (k==0) {   
-        //                 next[to1D(i,j,k,n)] = 0.0;
-        //             } else {
-        //                 if (i==0)
-        //                 {   
-                            
-        //                     i_component = curr[to1D(i+1,j,k,n)]*2.0;
-        //                 }
-        //                 else if (i==(n-1))
-        //                 {
-        //                     i_component = curr[to1D(i-1,j,k,n)]*2.0;
-        //                 }
-        //                 else
-        //                 {
-        //                     i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
-        //                 }
+        for (int k=0; k<n; k++)
+        {
+            for (int j=0; j<n; j++)
+            {
+                for (int i=0; i<n; i++)
+                {
+                    if (k==0) {   
+                        next[to1D(i,j,k,n)] = 0.0;
+                    } else {
+                        if (i==0)
+                        {   
+                            i_component = curr[to1D(i+1,j,k,n)]*2.0;
+                        }
+                        else if (i==(n-1))
+                        {
+                            i_component = curr[to1D(i-1,j,k,n)]*2.0;
+                        }
+                        else
+                        {
+                            i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
+                        }
 
-        //                 if (j==0)
-        //                 {   
-        //                     j_component = curr[to1D(i,j+1,k,n)]*2.0;
-        //                 }
-        //                 else if (j==(n-1))
-        //                 {
-        //                     j_component = curr[to1D(i,j-1,k,n)]*2.0;
-        //                 }
-        //                 else
-        //                 {
-        //                     j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
-        //                 }
+                        if (j==0)
+                        {   
+                            j_component = curr[to1D(i,j+1,k,n)]*2.0;
+                        }
+                        else if (j==(n-1))
+                        {
+                            j_component = curr[to1D(i,j-1,k,n)]*2.0;
+                        }
+                        else
+                        {
+                            j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
+                        }
                         
-        //                 if (k==(n-1))
-        //                 {
-        //                     k_component = curr[to1D(i,j,k-1,n)]*2.0;
-        //                 }
-        //                 else
-        //                 {
-        //                     k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
-        //                 }
+                        if (k==(n-1))
+                        {
+                            k_component = curr[to1D(i,j,k-1,n)]*2.0;
+                        }
+                        else
+                        {
+                            k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
+                        }
 
-        //                 next[to1D(i,j,k,n)] = (i_component + j_component + k_component
-        //                                         - ((delta*delta)*source[to1D(i,j,k,n)])) / 6.0;
-
-        //                 printf("Next: %f\n", next[to1D(i,j,k,n)]);
-        //             }
-        //         }
-        //     }
-        // }
+                        next[to1D(i,j,k,n)] = (i_component + j_component + k_component
+                                                - ((delta*delta)*source[to1D(i,j,k,n)])) / 6.0;
+                    }
+                }
+            }
+        }
 
         // Set next as the new current and to rewrite next in the next iteration.
         temp = curr; // a new pointer to the memory space of curr
