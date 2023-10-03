@@ -59,21 +59,21 @@ typedef struct
     int thread_id;      // Unique id of the worker thread
     int start;          // Start index of the worker thread
     int end;            // End index of the worker thread
+    double *curr;
+    double *next;
+    double *temp;
+    double *source;
+    int n;
+    int iterations;
+    int threads;
+    float delta;
+
 } WorkerArgs;
 
-/**
- * @brief Solve Poissons equation for a given cube with Dirichlet boundary
- * conditions on all sides.
- *
- * @param n             The edge length of the cube. n^3 number of elements. -n
- * @param source        Pointer to the source term cube, a.k.a. forcing function.
- * @param iterations    Number of iterations to perform. -i
- * @param threads       Number of threads to use for solving.
- * @param delta         Grid spacing.
- * @return double*      Solution to Poissons equation.  Caller must free.
- */
-double* poisson_dirichlet (int n, double *source, int iterations, int threads, float delta)
+void* worker (void* pargs)
 {
+    WorkerArgs* args = (WorkerArgs*)pargs;
+
     if (debug)
     {
         printf ("Starting solver with:\n"
@@ -81,18 +81,16 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
                "iterations = %i\n"
                "threads = %i\n"
                "delta = %f\n",
-               n, iterations, threads, delta);
+               args->n, args->iterations, args->threads, args->delta);
     }
 
     // Allocate some buffers to calculate the solution in
-    double *curr = (double*)calloc (n * n * n, sizeof (double)); // prev step
-    double *next = (double*)calloc (n * n * n, sizeof (double)); // next step
-    double *temp;
+    
 
     // Ensure we haven't run out of memory
-    if (curr == NULL || next == NULL)
+    if (args->curr == NULL || args->next == NULL)
     {
-        fprintf (stderr, "Error: ran out of memory when trying to allocate %i sized cube\n", n);
+        fprintf (stderr, "Error: ran out of memory when trying to allocate %i sized cube\n", args->n);
         exit (EXIT_FAILURE);
     }
 
@@ -103,185 +101,89 @@ double* poisson_dirichlet (int n, double *source, int iterations, int threads, f
 
     // Iterate over 3 dimensions i, j, and k
     // Need to consider the boundary conditions for each side of the cube
-    for (int num=0; num<iterations; num++)
+    for (int num=0; num<args->iterations; num++)
     {  
-        int i = 0;
-        int j = 0;
-        int k = 0;
-        
-    //     // Split each axis into separate components
-
-    //     // for (int i = 0; i < n; i++) {
-    //     //     for (int j = 0; j < n; j++) {
-    //     //         for (int k = 0; k < n; k++) {
-
-    //     //             if (i==0) {
-    //     //                 (i_component = curr[to1D(i+1,j,k,n)] * 2.0);
-    //     //             } else if (i==n-1) {
-    //     //                 i_component = curr[to1D(i-1,j,k,n)] * 2.0;
-    //     //             } else {
-    //     //                 i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
-    //     //             }
-
-    //     //             if (j==0) {
-    //     //                 j_component = curr[to1D(i,j+1,k,n)] * 2.0;
-    //     //             } else if (j==n-1) {
-    //     //                 j_component = curr[to1D(i,j-1,k,n)] * 2.0;
-    //     //             } else {
-    //     //                 j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
-    //     //             }
-
-    //     //             if (k==0) {
-    //     //                 k_component = 0.0;
-    //     //             } else if (k==n-1) {
-    //     //                 k_component = curr[to1D(i,j,k-1,n)] * 2.0;
-    //     //             } else {
-    //     //                 k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
-    //     //             }
-
-                  
-    //     //             next[to1D(i,j,k,n)] = (i_component + j_component + k_component -
-    //     //                         ((delta * delta) * source[to1D(i,j,k,n)])) / 6.0;
-                    
-    //     //         }
-    //     //     }
-    //     // }
-
-
-
-        while (k<n)
-        {   
-            if (k==0)
-            {
-                next[to1D(i,j,k,n)] = 0;
-            }
-            else
-            {
-                if (i==0)
-                {   
-                    i_component = curr[to1D(i+1,j,k,n)]*2;
-                }
-                else if (i==(n-1))
-                {
-                    i_component = curr[to1D(i-1,j,k,n)]*2;
-                }
-                else
-                {
-                    i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
-                }
-
-                if (j==0)
-                {   
-                    j_component = curr[to1D(i,j+1,k,n)]*2;
-                }
-                else if (j==(n-1))
-                {
-                    j_component = curr[to1D(i,j-1,k,n)]*2;
-                }
-                else
-                {
-                    j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
-                }
-
-                if (k==(n-1))
-                {
-                    k_component = curr[to1D(i,j,k-1,n)]*2;
-                }
-                else
-                {
-                    k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
-                }
-
-                // Calculate voltage at voxel
-                next[to1D(i,j,k,n)] = (i_component + j_component + k_component
-                                        - (delta*delta)*source[to1D(i,j,k,n)]) / 6.0;
-            }
-
-            i++;
-            if (i==n)
-            {
-                j++;
-                i=0;
-            }
-            if (j==n)
-            {
-                k++;
-                j=0;
-            }
-        }
+        // printf("start: %f", args-> start);
 
         // Old version with for loops for i, j, and k
         
-        // for (int i=0; i<n; i++)
-        // {
-        //     for (int j=0; j<n; j++)
-        //     {
-        //         for (int k=0; k<n; k++)
-        //         {
-        //             if (k==0) {   
-        //                 next[to1D(i,j,k,n)] = 0.0;
-        //             } else {
-        //                 if (i==0)
-        //                 {   
-                            
-        //                     i_component = curr[to1D(i+1,j,k,n)]*2.0;
-        //                 }
-        //                 else if (i==(n-1))
-        //                 {
-        //                     i_component = curr[to1D(i-1,j,k,n)]*2.0;
-        //                 }
-        //                 else
-        //                 {
-        //                     i_component = curr[to1D(i+1,j,k,n)] + curr[to1D(i-1,j,k,n)];
-        //                 }
-
-        //                 if (j==0)
-        //                 {   
-        //                     j_component = curr[to1D(i,j+1,k,n)]*2.0;
-        //                 }
-        //                 else if (j==(n-1))
-        //                 {
-        //                     j_component = curr[to1D(i,j-1,k,n)]*2.0;
-        //                 }
-        //                 else
-        //                 {
-        //                     j_component = curr[to1D(i,j+1,k,n)] + curr[to1D(i,j-1,k,n)];
-        //                 }
+        for (int k=args->start; k<args->end; k++)
+        {
+            for (int j=args->start; j<args->end; j++)
+            {
+                for (int i=args->start; i<args->end; i++)
+                {
+                    printf("thread num: %d\n", args->thread_id);
+                    printf("i: %d\n", i);
+                    printf("j: %d\n", j);
+                    printf("k: %d\n\n", k);
+                    if (k==0) {   
+                        args->next[to1D(i,j,k,args->n)] = 0.0;
                         
-        //                 if (k==(n-1))
-        //                 {
-        //                     k_component = curr[to1D(i,j,k-1,n)]*2.0;
-        //                 }
-        //                 else
-        //                 {
-        //                     k_component = curr[to1D(i,j,k+1,n)] + curr[to1D(i,j,k-1,n)];
-        //                 }
+                    } else {
+                        if (i==0)
+                        {   
+                            i_component = args->curr[to1D(i+1,j,k,args->n)]*2.0;
+                        }
+                        else if (i==(args->n-1))
+                        {
+                            i_component = args->curr[to1D(i-1,j,k,args->n)]*2.0;
+                        }
+                        else
+                        {
+                            i_component = args->curr[to1D(i+1,j,k,args->n)] + args->curr[to1D(i-1,j,k,args->n)];
+                        }
 
-        //                 next[to1D(i,j,k,n)] = (i_component + j_component + k_component
-        //                                         - ((delta*delta)*source[to1D(i,j,k,n)])) / 6.0;
+                        if (j==0)
+                        {   
+                            j_component = args->curr[to1D(i,j+1,k,args->n)]*2.0;
+                        }
+                        else if (j==(args->n-1))
+                        {
+                            j_component = args->curr[to1D(i,j-1,k,args->n)]*2.0;
+                        }
+                        else
+                        {
+                            j_component = args->curr[to1D(i,j+1,k,args->n)] + args->curr[to1D(i,j-1,k,args->n)];
+                        }
+                        
+                        if (k==(args->n-1))
+                        {
+                            k_component = args->curr[to1D(i,j,k-1,args->n)]*2.0;
+                        }
+                        else
+                        {
+                            printf("bleh");
+                            k_component = args->curr[to1D(i,j,k+1,args->n)] + args->curr[to1D(i,j,k-1,args->n)];
+                        }
 
-        //             }
-        //         }
-        //     }
-        // }
+                        args->next[to1D(i,j,k,args->n)] = (i_component + j_component + k_component
+                                                - ((args->delta*args->delta)*args->source[to1D(i,j,k,args->n)])) / 6.0;
+
+                    }
+                }
+            }
+        }
 
         // Set next as the new current and to rewrite next in the next iteration.
-        temp = curr; // a new pointer to the memory space of curr
-        curr = next; // curr now points to the memory space of next
-        next = temp; // next now points to memory space of temp which is the old memory space of curr
+        args->temp = args->curr; // a new pointer to the memory space of curr
+        args->curr = args->next; // curr now points to the memory space of next
+        args->next = args->temp; // next now points to memory space of temp which is the old memory space of curr
     }
 
     // Free one of the buffers and return the correct answer in the other.
     // The caller is now responsible for free'ing the returned pointer.
-    free (next);
+    free (args->next);
 
     if (debug)
     {
         printf ("Finished solving.\n");
     }
 
-    return curr;
+    return NULL;
 }
+
+
 
 
 
@@ -294,39 +196,6 @@ int main (int argc, char **argv)
     int n = 5;
     int threads = 1;
     float delta = 1;
-
-    // Storage for the thread handles and arguments
-    // will exist for the entire lifetime of the program.
-    pthread_t threads[threads];
-    WorkerArgs args[threads];
-
-    // Launch each of the new worker threads
-    for (int i = 0; i < threads; i++)
-    {
-        // Fill in the arguments to the worker
-        args[i].thread_id = i;
-        args[i].start = (n * i) / threads;
-        args[i].end = (n * (i + 1)) / threads;
-
-        // Create the worker thread
-        if (pthread_create (&threads[i], NULL, &worker, &args[i]) != 0)
-        {
-            fprintf (stderr, "Error creating worker thread!\n");
-            return EXIT_FAILURE;
-        }
-    }
-
-    // Wait for all the threads to finish using join ()
-    for (int i = 0; i < threads; i++)
-    {
-        pthread_join (threads[i], NULL);
-    }
-
-
-
-
-
-
 
 
     // parse the command line arguments
@@ -395,20 +264,59 @@ int main (int argc, char **argv)
     source[(n * n * n) / 2] = 1;
 
     // Calculate the resulting field with Dirichlet conditions
-    double *result = poisson_dirichlet (n, source, iterations, threads, delta);
+    // double *result = poisson_dirichlet (n, source, iterations, threads, delta);
+
+    // Storage for the thread handles and arguments
+    // will exist for the entire lifetime of the program.
+    pthread_t threads_list[threads];
+    WorkerArgs args[threads];
+
+    double *curr = (double*)calloc (n * n * n, sizeof (double)); 
+    double *next = (double*)calloc (n * n * n, sizeof (double)); 
+
+    // Launch each of the new worker threads
+    for (int i = 0; i < threads; i++)
+    {
+        // Fill in the arguments to the worker
+        args[i].thread_id = i;
+        args[i].start = (n * i) / threads;
+        args[i].end = (n * (i + 1)) / threads;
+        args[i].curr = curr;
+        args[i].next = next;
+        args[i].temp;
+        args[i].n = n;
+        args[i].iterations = iterations;
+        args[i].threads = threads;
+        args[i].delta = delta;
+
+      
+
+        // Create the worker thread
+        if (pthread_create (&threads_list[i], NULL, &worker, &args[i]) != 0)
+        {
+            fprintf (stderr, "Error creating worker thread!\n");
+            return EXIT_FAILURE;
+        }
+    }
+
+    // Wait for all the threads to finish using join ()
+    for (int i = 0; i < threads; i++)
+    {
+        pthread_join (threads_list[i], NULL);
+    }
 
     // Print out the middle slice of the cube for validation
     for (int x = 0; x < n; ++x)
     {
         for (int y = 0; y < n; ++y)
         {
-            printf ("%0.5f ", result[((n / 2) * n + y) * n + x]);
+            printf ("%0.5f ", args->curr[((n / 2) * n + y) * n + x]);
         }
         printf ("\n");
     }
 
     free (source);
-    free (result);
+    free (args->curr);
 
 
     end = clock();
