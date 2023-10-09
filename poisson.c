@@ -49,7 +49,7 @@
 
 // Global flag
 // Set to true when operating in debug mode to enable verbose logging
-static bool debug = true;
+static bool debug = false;
 
 // Macro to calculate the 1D index by flattening the 3D index
 #define to1D(i,j,k,n) (((k) * n * n) + ((j) * n) + (i))
@@ -61,7 +61,6 @@ typedef struct
     int end;            // End index of the worker thread
     double *curr;
     double *next;
-    double *temp;
     double *source;
     int n;
     int iterations;
@@ -74,118 +73,83 @@ void* worker (void* pargs)
 {
     WorkerArgs* args = (WorkerArgs*)pargs;
 
-    if (debug)
+        // TODO: solve Poisson's equation for the given inputs
+        double i_component;
+        double j_component;
+        double k_component;
+
+    // printf ("Starting solver with:\n"
+    //         "n = %i\n"
+    //         "start = %i\n"
+    //         "threads = %i\n"
+    //         "end = %d\n",
+    //         args->n, args->start, args->threads, args->end);
+
+    for (int k=args->start; k<args->end; k++)
     {
-        printf ("Starting solver with:\n"
-               "n = %i\n"
-               "iterations = %i\n"
-               "threads = %i\n"
-               "delta = %f\n",
-               args->n, args->iterations, args->threads, args->delta);
-    }
-
-    // Allocate some buffers to calculate the solution in
-    
-
-    // Ensure we haven't run out of memory
-    if (args->curr == NULL || args->next == NULL)
-    {
-        fprintf (stderr, "Error: ran out of memory when trying to allocate %i sized cube\n", args->n);
-        exit (EXIT_FAILURE);
-    }
-
-    // TODO: solve Poisson's equation for the given inputs
-    double i_component;
-    double j_component;
-    double k_component;
-
-    // Iterate over 3 dimensions i, j, and k
-    // Need to consider the boundary conditions for each side of the cube
-    for (int num=0; num<args->iterations; num++)
-    {  
-        // printf("start: %f", args-> start);
-
-        // Old version with for loops for i, j, and k
-        
-        for (int k=args->start; k<args->end; k++)
+        for (int j=0; j<args->n; j++)
         {
-            for (int j=args->start; j<args->end; j++)
+            for (int i=0; i<args->n; i++)
             {
-                for (int i=args->start; i<args->end; i++)
-                {
-                    printf("thread num: %d\n", args->thread_id);
-                    printf("i: %d\n", i);
-                    printf("j: %d\n", j);
-                    printf("k: %d\n\n", k);
-                    if (k==0) {   
-                        args->next[to1D(i,j,k,args->n)] = 0.0;
-                        
-                    } else {
-                        if (i==0)
-                        {   
-                            i_component = args->curr[to1D(i+1,j,k,args->n)]*2.0;
-                        }
-                        else if (i==(args->n-1))
-                        {
-                            i_component = args->curr[to1D(i-1,j,k,args->n)]*2.0;
-                        }
-                        else
-                        {
-                            i_component = args->curr[to1D(i+1,j,k,args->n)] + args->curr[to1D(i-1,j,k,args->n)];
-                        }
-
-                        if (j==0)
-                        {   
-                            j_component = args->curr[to1D(i,j+1,k,args->n)]*2.0;
-                        }
-                        else if (j==(args->n-1))
-                        {
-                            j_component = args->curr[to1D(i,j-1,k,args->n)]*2.0;
-                        }
-                        else
-                        {
-                            j_component = args->curr[to1D(i,j+1,k,args->n)] + args->curr[to1D(i,j-1,k,args->n)];
-                        }
-                        
-                        if (k==(args->n-1))
-                        {
-                            k_component = args->curr[to1D(i,j,k-1,args->n)]*2.0;
-                        }
-                        else
-                        {
-                            printf("bleh");
-                            k_component = args->curr[to1D(i,j,k+1,args->n)] + args->curr[to1D(i,j,k-1,args->n)];
-                        }
-
-                        args->next[to1D(i,j,k,args->n)] = (i_component + j_component + k_component
-                                                - ((args->delta*args->delta)*args->source[to1D(i,j,k,args->n)])) / 6.0;
-
+                // printf("thread num: %d\n", args->thread_id);
+                // printf("i: %d\n", i);
+                // printf("j: %d\n", j);
+                // printf("k: %d\n\n", k);
+                if (k==0) {   
+                    args->next[to1D(i,j,k,args->n)] = 0.0;
+                } else {
+                    if (i==0)
+                    {   
+                        i_component = args->curr[to1D(i+1,j,k,args->n)]*2.0;
                     }
+                    else if (i==(args->n-1))
+                    {
+                        i_component = args->curr[to1D(i-1,j,k,args->n)]*2.0;
+                        // printf("this thing: %d\n", args->thread_id);
+                    }
+                    else    // printf ("Starting solver with:\n"
+    //         "n = %i\n"
+    //         "start = %i\n"
+    //         "threads = %i\n"
+    //         "end = %d\n",
+    //         args->n, args->start, args->threads, args->end);
+                    {
+                        i_component = args->curr[to1D(i+1,j,k,args->n)] + args->curr[to1D(i-1,j,k,args->n)];
+                    }
+
+                    if (j==0)
+                    {   
+                        j_component = args->curr[to1D(i,j+1,k,args->n)]*2.0;
+                    }
+                    else if (j==(args->n-1))
+                    {
+                        j_component = args->curr[to1D(i,j-1,k,args->n)]*2.0;
+                    }
+                    else
+                    {
+                        j_component = args->curr[to1D(i,j+1,k,args->n)] + args->curr[to1D(i,j-1,k,args->n)];
+                    }
+                    
+                    if (k==(args->n-1))
+                    {
+                        k_component = args->curr[to1D(i,j,k-1,args->n)]*2.0;
+                    }
+                    else
+                    {
+                        // printf("bleh");
+                        k_component = args->curr[to1D(i,j,k+1,args->n)] + args->curr[to1D(i,j,k-1,args->n)];
+                    }
+
+                    args->next[to1D(i,j,k,args->n)] = (i_component + j_component + k_component
+                                            - ((args->delta*args->delta)*args->source[to1D(i,j,k,args->n)])) / 6.0;
+
                 }
+                // printf("%f\n", args->next[to1D(i,j,k,args->n)]);
             }
         }
-
-        // Set next as the new current and to rewrite next in the next iteration.
-        args->temp = args->curr; // a new pointer to the memory space of curr
-        args->curr = args->next; // curr now points to the memory space of next
-        args->next = args->temp; // next now points to memory space of temp which is the old memory space of curr
     }
-
-    // Free one of the buffers and return the correct answer in the other.
-    // The caller is now responsible for free'ing the returned pointer.
-    free (args->next);
-
-    if (debug)
-    {
-        printf ("Finished solving.\n");
-    }
-
     return NULL;
 }
-
-
-
-
 
 int main (int argc, char **argv)
 {
@@ -196,7 +160,6 @@ int main (int argc, char **argv)
     int n = 5;
     int threads = 1;
     float delta = 1;
-
 
     // parse the command line arguments
     for (int i = 1; i < argc; ++i)
@@ -273,37 +236,73 @@ int main (int argc, char **argv)
 
     double *curr = (double*)calloc (n * n * n, sizeof (double)); 
     double *next = (double*)calloc (n * n * n, sizeof (double)); 
+    double *temp; 
 
-    // Launch each of the new worker threads
-    for (int i = 0; i < threads; i++)
+    if (debug)
     {
-        // Fill in the arguments to the worker
-        args[i].thread_id = i;
-        args[i].start = (n * i) / threads;
-        args[i].end = (n * (i + 1)) / threads;
-        args[i].curr = curr;
-        args[i].next = next;
-        args[i].temp;
-        args[i].n = n;
-        args[i].iterations = iterations;
-        args[i].threads = threads;
-        args[i].delta = delta;
+        printf ("Starting solver with:\n"
+            "n = %i\n"
+            "iterations = %i\n"
+            "threads = %i\n"
+            "delta = %f\n",
+            n, iterations, threads, delta);
+    }
 
-      
-
-        // Create the worker thread
-        if (pthread_create (&threads_list[i], NULL, &worker, &args[i]) != 0)
+    // Ensure we haven't run out of memory
+    if (curr == NULL || next == NULL)
+    {
+        fprintf (stderr, "Error: ran out of memory when trying to allocate %i sized cube\n", n);
+        exit (EXIT_FAILURE);
+    }
+    
+    // Iterate over 3 dimensions i, j, and k
+    // Need to consider the boundary conditions for each side of the cube
+    for (int num=0; num<args->iterations; num++)
+    {   
+        // Launch each of the new worker threads
+        for (int i = 0; i < threads; i++)
         {
-            fprintf (stderr, "Error creating worker thread!\n");
-            return EXIT_FAILURE;
+            // Fill in the arguments to the worker
+            args[i].thread_id = i;
+            args[i].start = (n * i) / threads;
+            args[i].end = (n * (i + 1)) / threads;
+            args[i].curr = curr;
+            args[i].next = next;
+            args[i].n = n;
+            args[i].iterations = iterations;
+            args[i].threads = threads;
+            args[i].delta = delta;
+            args[i].source = source;
+    
+            // Create the worker thread
+            if (pthread_create (&threads_list[i], NULL, &worker, &args[i]) != 0)
+            {
+                fprintf (stderr, "Error creating worker thread!\n");
+                return EXIT_FAILURE;
+            }
         }
+
+        // Wait for all the threads to finish using join ()
+        for (int i = 0; i < threads; i++)
+        {
+            pthread_join (threads_list[i], NULL);
+        }
+
+        // Set next as the new current and to rewrite next in the next iteration.
+        temp = curr; // a new pointer to the memory space of curr
+        curr = next; // curr now points to the memory space of next
+        next = temp; // next now points to memory space of temp which is the old memory space of curr
     }
 
-    // Wait for all the threads to finish using join ()
-    for (int i = 0; i < threads; i++)
+    // Free one of the buffers and return the correct answer in the other.
+    // The caller is now responsible for free'ing the returned pointer.
+    free (args->next);
+
+    if (debug)
     {
-        pthread_join (threads_list[i], NULL);
+        printf ("Finished solving.\n");
     }
+
 
     // Print out the middle slice of the cube for validation
     for (int x = 0; x < n; ++x)
