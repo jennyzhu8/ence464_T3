@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 #include <pthread.h>
 
 
@@ -77,23 +76,12 @@ void* worker (void* pargs)
         double j_component;
         double k_component;
 
-    // printf ("Starting solver with:\n"
-    //         "n = %i\n"
-    //         "start = %i\n"
-    //         "threads = %i\n"
-    //         "end = %d\n",
-    //         args->n, args->start, args->threads, args->end);
-
     for (int k=args->start; k<args->end; k++)
     {
         for (int j=0; j<args->n; j++)
         {
             for (int i=0; i<args->n; i++)
             {
-                // printf("thread num: %d\n", args->thread_id);
-                // printf("i: %d\n", i);
-                // printf("j: %d\n", j);
-                // printf("k: %d\n\n", k);
                 if (k==0) {   
                     args->next[to1D(i,j,k,args->n)] = 0.0;
                 } else {
@@ -104,7 +92,6 @@ void* worker (void* pargs)
                     else if (i==(args->n-1))
                     {
                         i_component = args->curr[to1D(i-1,j,k,args->n)]*2.0;
-                        // printf("this thing: %d\n", args->thread_id);
                     }
                     else
                     {
@@ -130,7 +117,6 @@ void* worker (void* pargs)
                     }
                     else
                     {
-                        // printf("bleh");
                         k_component = args->curr[to1D(i,j,k+1,args->n)] + args->curr[to1D(i,j,k-1,args->n)];
                     }
 
@@ -138,7 +124,6 @@ void* worker (void* pargs)
                                             - ((args->delta*args->delta)*args->source[to1D(i,j,k,args->n)])) / 6.0;
 
                 }
-                // printf("%f\n", args->next[to1D(i,j,k,args->n)]);
             }
         }
     }
@@ -147,12 +132,10 @@ void* worker (void* pargs)
 
 int main (int argc, char **argv)
 {
-    clock_t start, end;
-    start = clock();
     // Default settings for solver
     int iterations = 10;
     int n = 5;
-    int threads = 1;
+    int threads = 2;
     float delta = 1;
 
     // parse the command line arguments
@@ -219,9 +202,6 @@ int main (int argc, char **argv)
     }
 
     source[(n * n * n) / 2] = 1;
-
-    // Calculate the resulting field with Dirichlet conditions
-    // double *result = poisson_dirichlet (n, source, iterations, threads, delta);
 
     // Storage for the thread handles and arguments
     // will exist for the entire lifetime of the program.
@@ -310,12 +290,5 @@ int main (int argc, char **argv)
     free (source);
     free (curr);
 
-
-    end = clock();
-    double duration = ((double)end - start) / CLOCKS_PER_SEC;
-    if (debug)
-    {
-        printf("Duration: %f\n",duration);
-    }
     return EXIT_SUCCESS;
 }
