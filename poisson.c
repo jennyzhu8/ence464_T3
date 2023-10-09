@@ -63,7 +63,6 @@ typedef struct
     double *next;
     double *source;
     int n;
-    int iterations;
     int threads;
     float delta;
 
@@ -107,12 +106,7 @@ void* worker (void* pargs)
                         i_component = args->curr[to1D(i-1,j,k,args->n)]*2.0;
                         // printf("this thing: %d\n", args->thread_id);
                     }
-                    else    // printf ("Starting solver with:\n"
-    //         "n = %i\n"
-    //         "start = %i\n"
-    //         "threads = %i\n"
-    //         "end = %d\n",
-    //         args->n, args->start, args->threads, args->end);
+                    else
                     {
                         i_component = args->curr[to1D(i+1,j,k,args->n)] + args->curr[to1D(i-1,j,k,args->n)];
                     }
@@ -257,7 +251,7 @@ int main (int argc, char **argv)
     
     // Iterate over 3 dimensions i, j, and k
     // Need to consider the boundary conditions for each side of the cube
-    for (int num=0; num<args->iterations; num++)
+    for (int num=0; num<iterations; num++)
     {   
         // Launch each of the new worker threads
         for (int i = 0; i < threads; i++)
@@ -269,7 +263,6 @@ int main (int argc, char **argv)
             args[i].curr = curr;
             args[i].next = next;
             args[i].n = n;
-            args[i].iterations = iterations;
             args[i].threads = threads;
             args[i].delta = delta;
             args[i].source = source;
@@ -296,7 +289,7 @@ int main (int argc, char **argv)
 
     // Free one of the buffers and return the correct answer in the other.
     // The caller is now responsible for free'ing the returned pointer.
-    free (args->next);
+    free (next);
 
     if (debug)
     {
@@ -309,13 +302,13 @@ int main (int argc, char **argv)
     {
         for (int y = 0; y < n; ++y)
         {
-            printf ("%0.5f ", args->curr[((n / 2) * n + y) * n + x]);
+            printf ("%0.5f ", curr[((n / 2) * n + y) * n + x]);
         }
         printf ("\n");
     }
 
     free (source);
-    free (args->curr);
+    free (curr);
 
 
     end = clock();
