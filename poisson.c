@@ -132,6 +132,9 @@ void* worker (void* pargs)
 
 int main (int argc, char **argv)
 {
+    clock_t start, end;
+    start = clock();
+
     // Default settings for solver
     int iterations = 10;
     int n = 5;
@@ -288,6 +291,13 @@ int main (int argc, char **argv)
 
     free (source);
     free (curr);
+
+    end = clock();
+    double duration = ((double)end - start) / CLOCKS_PER_SEC;
+    if (debug)
+    {
+        printf("Duration: %f\n",duration);
+    }
 
     return EXIT_SUCCESS;
 }
