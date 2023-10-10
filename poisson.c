@@ -135,7 +135,7 @@ int main (int argc, char **argv)
     // Default settings for solver
     int iterations = 10;
     int n = 5;
-    int threads = 2;
+    int threads = 8;
     float delta = 1;
 
     // parse the command line arguments
@@ -275,7 +275,6 @@ int main (int argc, char **argv)
     {
         printf ("Finished solving.\n");
     }
-
 
     // Print out the middle slice of the cube for validation
     for (int x = 0; x < n; ++x)
