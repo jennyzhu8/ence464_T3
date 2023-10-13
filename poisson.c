@@ -138,7 +138,7 @@ int main (int argc, char **argv)
     // Default settings for solver
     int iterations = 10;
     int n = 5;
-    int threads = 8;
+    int threads = 4;
     float delta = 1;
 
     // parse the command line arguments

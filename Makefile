@@ -3,7 +3,7 @@ all: poisson
 # -g outputs debugging information
 # -Wall enables all warnings
 # -pthread configures threading
-CFLAGS = -g -O3 -Wall -pthread 
+CFLAGS = -pg -O3 -g -Wall -pthread 
 
 poisson: poisson.c
 
