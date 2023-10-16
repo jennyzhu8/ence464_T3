@@ -1,0 +1,265 @@
+--------------------------------------------------------------------------------
+Profile data file 'callgrind.out.2820' (creator: callgrind-3.18.1)
+--------------------------------------------------------------------------------
+I1 cache: 
+D1 cache: 
+LL cache: 
+Timerange: Basic block 0 - 33727579552
+Trigger: Program termination
+Profiled target:  ./poisson -n 301 -i 300 (PID 2820, part 1)
+Events recorded:  Ir
+Events shown:     Ir
+Event sort order: Ir
+Thresholds:       99
+Include dirs:     
+User annotated:   callgrind.out.3655
+Auto-annotation:  on
+
+--------------------------------------------------------------------------------
+Ir                       
+--------------------------------------------------------------------------------
+231,160,065,663 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                        file:function
+--------------------------------------------------------------------------------
+231,158,795,588 (100.0%)  poisson.c:worker [/file/UsersJ/jzh208/Home/ENCE464/Group33/poisson]
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: poisson.c
+--------------------------------------------------------------------------------
+Ir                      
+
+-- line 63 ----------------------------------------
+             .               double *source;
+             .               int n;
+             .               int threads;
+             .               float delta;
+             .           
+             .           } WorkerArgs;
+             .           
+             .           void* worker (void* pargs)
+         7,788 ( 0.00%)  {
+        21,948 ( 0.00%)  => ./gmon/../sysdeps/x86_64/_mcount.S:mcount (708x)
+             .               WorkerArgs* args = (WorkerArgs*)pargs;
+             .           
+             .                   // TODO: solve Poisson's equation for the given inputs
+             .                   double i_component;
+             .                   double j_component;
+             .                   double k_component;
+             .           
+       746,289 ( 0.00%)      for (int k=args->start; k<args->end; k++)
+             .               {
+   128,228,200 ( 0.06%)          for (int j=0; j<args->n; j++)
+             .                   {
+19,281,797,264 ( 8.34%)              for (int i=0; i<args->n; i++)
+             .                       {
+ 9,640,898,634 ( 4.17%)                  if (k==0) {   
+    80,182,593 ( 0.03%)                      args->next[to1D(i,j,k,args->n)] = 0.0;
+             .                           } else {
+ 9,608,825,880 ( 4.16%)                      if (i==0)
+             .                               {   
+ 4,948,279,593 ( 2.14%)                          i_component = args->curr[to1D(i+1,j,k,args->n)]*2.0;
+             .                               }
+ 9,576,902,870 ( 4.14%)                      else if (i==(args->n-1))
+             .                               {
+14,413,238,817 ( 6.24%)                          i_component = args->curr[to1D(i-1,j,k,args->n)]*2.0;
+             .                               }
+             .                               else
+             .                               {
+14,317,469,793 ( 6.19%)                          i_component = args->curr[to1D(i+1,j,k,args->n)] + args->curr[to1D(i-1,j,k,args->n)];
+             .                               }
+             .           
+ 9,608,825,880 ( 4.16%)                      if (j==0)
+             .                               {   
+    79,808,645 ( 0.03%)                          j_component = args->curr[to1D(i,j+1,k,args->n)]*2.0;
+             .                               }
+ 9,576,902,422 ( 4.14%)                      else if (j==(args->n-1))
+             .                               {
+   208,138,072 ( 0.09%)                          j_component = args->curr[to1D(i,j-1,k,args->n)]*2.0;
+             .                               }
+             .                               else
+             .                               {
+38,292,021,730 (16.57%)                          j_component = args->curr[to1D(i,j+1,k,args->n)] + args->curr[to1D(i,j-1,k,args->n)];
+             .                               }
+             .                               
+ 9,608,879,084 ( 4.16%)                      if (k==(args->n-1))
+             .                               {
+    80,181,885 ( 0.03%)                          k_component = args->curr[to1D(i,j,k-1,args->n)]*2.0;
+             .                               }
+             .                               else
+             .                               {
+33,663,301,032 (14.56%)                          k_component = args->curr[to1D(i,j,k+1,args->n)] + args->curr[to1D(i,j,k-1,args->n)];
+             .                               }
+             .           
+14,413,238,817 ( 6.24%)                      args->next[to1D(i,j,k,args->n)] = (i_component + j_component + k_component
+33,630,913,937 (14.55%)                                              - ((args->delta*args->delta)*args->source[to1D(i,j,k,args->n)])) / 6.0;
+             .           
+             .                           }
+             .                       }
+             .                   }
+             .               }
+             .               return NULL;
+         6,363 ( 0.00%)  }
+             .           
+             .           int main (int argc, char **argv)
+            16 ( 0.00%)  {
+            31 ( 0.00%)  => ./gmon/../sysdeps/x86_64/_mcount.S:mcount (1x)
+             .               clock_t start, end;
+             2 ( 0.00%)      start = clock();
+            37 ( 0.00%)  => ???:0x0000000000109170 (1x)
+             .           
+             .               // Default settings for solver
+             1 ( 0.00%)      int iterations = 10;
+             1 ( 0.00%)      int n = 5;
+             1 ( 0.00%)      int threads = 4;
+             .               float delta = 1;
+             .           
+             .               // parse the command line arguments
+            10 ( 0.00%)      for (int i = 1; i < argc; ++i)
+             .               {
+            29 ( 0.00%)          if (strcmp (argv[i], "-h") == 0 || strcmp (argv[i], "--help") == 0)
+            46 ( 0.00%)  => ???:0x00000000001091a0 (2x)
+             .                   {
+             .                       printf ("Usage: poisson [-n size] [-i iterations] [-t threads] [--debug]\n");
+             .                       return EXIT_SUCCESS;
+             .                   }
+             .           
+            10 ( 0.00%)          if (strcmp (argv[i], "-n") == 0)
+             .                   {
+             5 ( 0.00%)              if (i == argc - 1)
+             .                       {
+             .                           fprintf (stderr, "Error: expected size after -n!\n");
+             .                           return EXIT_FAILURE;
+             .                       }
+             .           
+             3 ( 0.00%)              n = atoi (argv[++i]);
+             .                   }
+             .           
+             9 ( 0.00%)          if (strcmp (argv[i], "-i") == 0)
+             .                   {
+             2 ( 0.00%)              if (i == argc - 1)
+             .                       {
+             .                           fprintf (stderr, "Error: expected iterations after -i!\n");
+             .                           return EXIT_FAILURE;
+             .                       }
+             .           
+             3 ( 0.00%)              iterations = atoi (argv[++i]);
+             .                   }
+             .           
+             5 ( 0.00%)          if (strcmp (argv[i], "-t") == 0)
+             .                   {
+             .                       if (i == argc - 1)
+             .                       {
+             .                           fprintf (stderr, "Error: expected threads after -t!\n");
+             .                           return EXIT_FAILURE;
+             .                       }
+             .           
+             .                       threads = atoi (argv[++i]);
+             .                   }
+             .           
+            10 ( 0.00%)          if (strcmp (argv[i], "--debug") == 0)
+            46 ( 0.00%)  => ???:0x00000000001091a0 (2x)
+             .                   {
+             .                       debug = true;
+             .                   }
+             .               }
+             .           
+             .               // Ensure we have an odd sized cube
+             2 ( 0.00%)      if (n % 2 == 0)
+             .               {
+             .                   fprintf (stderr, "Error: n should be an odd number!\n");
+             .                   return EXIT_FAILURE;
+             .               }
+             .           
+             .               // Create a source term with a single point in the centre
+             9 ( 0.00%)      double *source = (double*)calloc (n * n * n, sizeof (double));
+           305 ( 0.00%)  => ???:0x0000000000109190 (1x)
+             2 ( 0.00%)      if (source == NULL)
+             .               {
+             .                   fprintf (stderr, "Error: failed to allocated source term (n=%i)\n", n);
+             .                   return EXIT_FAILURE;
+             .               }
+             .           
+             8 ( 0.00%)      source[(n * n * n) / 2] = 1;
+             .           
+             .               // Storage for the thread handles and arguments
+             .               // will exist for the entire lifetime of the program.
+            15 ( 0.00%)      pthread_t threads_list[threads];
+            15 ( 0.00%)      WorkerArgs args[threads];
+             .           
+             4 ( 0.00%)      double *curr = (double*)calloc (n * n * n, sizeof (double)); 
+           305 ( 0.00%)  => ???:0x0000000000109190 (1x)
+             4 ( 0.00%)      double *next = (double*)calloc (n * n * n, sizeof (double)); 
+           305 ( 0.00%)  => ???:0x0000000000109190 (1x)
+             .               double *temp; 
+             .           
+             4 ( 0.00%)      if (debug)
+             .               {
+             .                   printf ("Starting solver with:\n"
+             .                       "n = %i\n"
+             .                       "iterations = %i\n"
+             .                       "threads = %i\n"
+             .                       "delta = %f\n",
+             .                       n, iterations, threads, delta);
+             .               }
+             .           
+             .               // Ensure we haven't run out of memory
+             6 ( 0.00%)      if (curr == NULL || next == NULL)
+             .               {
+             .                   fprintf (stderr, "Error: ran out of memory when trying to allocate %i sized cube\n", n);
+             .                   exit (EXIT_FAILURE);
+             .               }
+             .               
+             .               // Iterate over 3 dimensions i, j, and k
+             .               // Need to consider the boundary conditions for each side of the cube
+         2,119 ( 0.00%)      for (int num=0; num<iterations; num++)
+             .               {   
+             .                   // Launch each of the new worker threads
+         2,832 ( 0.00%)          for (int i = 0; i < threads; i++)
+             .                   {
+             .                       // Fill in the arguments to the worker
+         2,832 ( 0.00%)              args[i].thread_id = i;
+         2,832 ( 0.00%)              args[i].start = (n * i) / threads;
+         4,248 ( 0.00%)              args[i].end = (n * (i + 1)) / threads;
+         1,416 ( 0.00%)              args[i].curr = curr;
+         1,416 ( 0.00%)              args[i].next = next;
+           708 ( 0.00%)              args[i].n = n;
+           708 ( 0.00%)              args[i].threads = threads;
+         1,416 ( 0.00%)              args[i].delta = delta;
+         1,416 ( 0.00%)              args[i].source = source;
+             .               
+             .                       // Create the worker thread
+         7,084 ( 0.00%)              if (pthread_create (&threads_list[i], NULL, &worker, &args[i]) != 0)
+       700,964 ( 0.00%)  => ???:0x00000000001091e0 (708x)
+             .                       {
+             .                           fprintf (stderr, "Error creating worker thread!\n");
+             .                           return EXIT_FAILURE;
+             .                       }
+             .                   }
+             .           
+             .                   // Wait for all the threads to finish using join ()
+         3,352 ( 0.00%)          for (int i = 0; i < threads; i++)
+             .                   {
+         2,115 ( 0.00%)              pthread_join (threads_list[i], NULL);
+       123,042 ( 0.00%)  => ???:0x0000000000109230 (705x)
+             .                   }
+             .           
+             .                   // Set next as the new current and to rewrite next in the next iteration.
+             .                   temp = curr; // a new pointer to the memory space of curr
+             .                   curr = next; // curr now points to the memory space of next
+             .                   next = temp; // next now points to memory space of temp which is the old memory space of curr
+             .               }
+             .           
+-- line 272 ----------------------------------------
+
+--------------------------------------------------------------------------------
+-- User-annotated source: callgrind.out.3655
+--------------------------------------------------------------------------------
+  No information has been collected for callgrind.out.3655
+
+--------------------------------------------------------------------------------
+Ir                       
+--------------------------------------------------------------------------------
+231,158,830,258 (100.0%)  events annotated
+
